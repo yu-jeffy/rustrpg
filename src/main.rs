@@ -1,6 +1,7 @@
 mod character;
 mod enemy;
 mod game;
+mod item;
 
 use character::Character;
 use character::Profession;

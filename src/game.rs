@@ -2,6 +2,7 @@ use std::io;
 use std::io::prelude::*;
 use crate::character::Character;
 use crate::enemy::Enemy;
+use crate::item::Item;
 
 pub struct Game {
     pub player: Character,
@@ -26,48 +27,37 @@ impl Game {
             "Upon defeating another enemy, Rusty found himself standing before a gloomy cave entrance..."
         ]; 
     
-        let mut i = 0;
-        
-        while self.player.hp > 0 && self.stage < self.enemies.len() {
-            let enemy = &mut self.enemies[self.stage];
-            // Narrate the game story.
-            if i < narrative.len() {
-                println!("{}", narrative[i]);
-            }
-            println!(
-                "{} encountered {}. What do you want to do, Rusty? 1: Attack, 2: Flee",
-                self.player.name, enemy.name
-            );
-            let mut action = String::new();
-            io::stdin().read_line(&mut action).unwrap();
-            match action.trim().parse::<i32>() {
-                Ok(1) => {  // Attack
-                    enemy.hp -= self.player.damage;
-                    if enemy.hp > 0 {
-                        self.player.hp -= enemy.damage;
-                        println!("You hit the enemy for {} damage!", self.player.damage);
-                        println!("Enemy hits you for {} damage!", enemy.damage);
-                    } else {
-                        println!("You hit the enemy for {} damage. The enemy is defeated!", self.player.damage);
-                        self.stage += 1;  // Proceed to the next stage
-                        i += 1; // Move narrative along with stage
-                    }
-                    println!("Your current HP: {}. Enemy's current HP: {}", self.player.hp, enemy.hp);
-                },
-                Ok(2) => {  // Flee
-                    println!("You run away safely. But the invaders are still there!");
-                    return;
-                },
-                _ => {
-                    println!("Invalid action!");
-                },
-            }
+        let mut action = String::new();
+io::stdin().read_line(&mut action).unwrap();
+let items = vec![
+Item::new(String::from("Healing Potion"), 20, 5),
+Item::new(String::from("Super Healing Potion"), 50, 10),
+];
+
+match action.trim().parse::<i32>() {
+    // Attack or flee cases, etc.
+    Ok(3) => {  // Go to shop
+        println!("Available items:");
+        for (i, item) in items.iter().enumerate() {
+            println!("{}. {}: {} gold", i+1, item.name, item.cost);
         }
-    
-        if self.player.hp > 0 {
-            println!("Victory! Our hero Rusty stands victorious over the invaders!");
-        } else {
-            println!("Defeat... The invaders defeated our brave Rusty");
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        match input.trim().parse::<usize>() {
+            Ok(i) if i > 0 && i <= items.len() => {
+                let item = &items[i-1];
+                if self.player.gold >= item.cost {
+                    self.player.gold -= item.cost;
+                    self.player.inventory.push(item.clone());
+                    println!("You bought a {}", item.name);
+                } else {
+                    println!("You don't have enough gold");
+                } 
+            }
+            _ => println!("Invalid choice"), 
         }
+    },
+    _ => println!("Invalid action"),
+}
     }
 }
